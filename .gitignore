@@ -130,3 +130,6 @@ dmypy.json
 
 *.json
 *.html
+*.txt
+*.csv
+*.gz
