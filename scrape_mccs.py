@@ -26,7 +26,7 @@ def scrape_mccs():
                 data[str(row_items[0])]['networks'] = []
             line = {}
             line['mnc'] = row_items[1]
-            line['network'] = row_items[5]
+            line['network'] = row_items[5][:-1]
             data[str(row_items[0])]['networks'].append(line)
 
         json.dump(data, json_file)

@@ -31,10 +31,18 @@ def download():
             shutil.copyfileobj(mls_zip_in, mls_zip_out)
 
     os.remove(mls_filename)
+    reformat_mls()
+
+# remove useless MLS file columns
+def reformat_mls():
+    dataset = read_mls()
+    del dataset['range'], dataset['samples'], dataset['changeable'], dataset['created'], dataset['updated'], dataset['averageSignal'], dataset['unit']
+    dataset.to_csv('mls.csv', encoding='utf-8', index=False)
 
 # read MLS file and return pd dataframe
 def read_mls() -> list:
-    return pd.read_csv('mls.csv')
+    dataset = pd.read_csv('mls.csv')
+    return dataset
 
 # get all data for specific MCC
 def get_mcc(csv_data : list, mcc : int) -> list:
@@ -42,5 +50,6 @@ def get_mcc(csv_data : list, mcc : int) -> list:
 
 if __name__ == '__main__':
 
-    download()
+    #download()
+    read_mls()
     #print(get_mcc(206))
