@@ -18,16 +18,18 @@ def scrape_mccs():
                 continue
             row_items = [item.text for item in row]
 
-            if row_items[0] not in data:
-                data[str(row_items[0])] = {}
-                data[str(row_items[0])]['iso'] = row_items[2]
-                data[str(row_items[0])]['country'] = row_items[3]
-                data[str(row_items[0])]['country code'] = row_items[4]
-                data[str(row_items[0])]['networks'] = []
+            if row_items[1] == 'n/a' or row_items[4] == '':
+                continue
+            if row_items[3] not in data:
+                data[str(row_items[3])] = {}
+                data[str(row_items[3])]['mcc'] = int(row_items[0])
+                data[str(row_items[3])]['iso'] = row_items[2]
+                data[str(row_items[3])]['country code'] = int(row_items[4])
+                data[str(row_items[3])]['networks'] = []
             line = {}
-            line['mnc'] = row_items[1]
+            line['mnc'] = int(row_items[1])
             line['network'] = row_items[5][:-1]
-            data[str(row_items[0])]['networks'].append(line)
+            data[str(row_items[3])]['networks'].append(line)
 
         json.dump(data, json_file)
 
