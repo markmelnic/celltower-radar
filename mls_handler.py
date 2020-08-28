@@ -24,7 +24,9 @@ def mls_setup():
 
     if os.path.getsize(MCCS_JSON) < os.path.getsize(MLS_CSV):
         print('(5/5) Integrating MLS and MCCS files')
-        integrate_cells()
+        integrate_to_mccs()
+
+    print("Successful MLS handling")
 
 # download MLS file
 def download():
@@ -58,7 +60,7 @@ def reformat_mls():
     dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
 
 # integrate cells to mmcs file
-def integrate_cells():
+def integrate_to_mccs():
     try:
         with open(MCCS_JSON) as json_file:
             mcc_data = json.load(json_file)
@@ -90,6 +92,10 @@ def integrate_cells():
 
     with open(MCCS_JSON, 'w') as json_file:
         json.dump(mcc_data, json_file)
+
+# integrate cells to mmcs file
+def integrate_to_csv():
+    print("WIP")
 
 # read MLS file and return pd dataframe
 def read_mls() -> list:
