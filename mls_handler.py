@@ -43,16 +43,36 @@ def reformat_mls():
     dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
 
 # integrate cells to mmcs file
-def integrate_cells(csv_data : list):
+def integrate_cells():
     try:
         with open('mccs.json') as json_file:
-            data = json.load(json_file)
+            mcc_data = json.load(json_file)
     except FileNotFoundError:
         scrape_mccs()
         with open('mccs.json') as json_file:
-            data = json.load(json_file)
+            mcc_data = json.load(json_file)
 
-    
+    with open(MLS_CSV, mode="r", newline='') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        csv_data = list(csv_reader)
+        csv_data.pop(0)
+
+    for i, row in enumerate(csv_data):
+        for country in mcc_data:
+            if int(row[1]) == mcc_data[country]['mcc']:
+                for mnc in mcc_data[country]['networks']:
+                    if int(row[2]) == mnc['mnc']:
+                        if row[0] not in mnc:
+                            mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]] = []
+                        ds = {}
+                        ds['LAC'] = row[3]
+                        ds['cellId'] = row[4]
+                        ds['lng'] = row[5]
+                        ds['lat'] = row[6]
+                        mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]].append(ds)
+
+    with open('mccs.json', 'w') as json_file:
+        json.dump(mcc_data, json_file)
 
 # read MLS file and return pd dataframe
 def read_mls() -> list:
@@ -60,6 +80,7 @@ def read_mls() -> list:
         dataset = pd.read_csv(MLS_CSV)
     except FileNotFoundError:
         download()
+        dataset = pd.read_csv(MLS_CSV)
     return dataset
 
 # get all data for specific MCC
@@ -68,5 +89,5 @@ def get_mcc(csv_data : list, mcc : int) -> list:
 
 if __name__ == '__main__':
 
-    print(read_mls())
-    #integrate_cells(read_mls())
+    #print(read_mls())
+    integrate_cells()
