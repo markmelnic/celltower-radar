@@ -3,12 +3,28 @@ import os, csv, json, shutil, requests, gzip
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from scrape_mccs import scrape_mccs
+from scrape_mccs import scrape_mccs, MCCS_JSON
 
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MLS_URL = 'https://location.services.mozilla.com/downloads'
 MLS_CSV = 'mls.csv'
+
+# execte the entire MLS process
+def mls_setup():
+    if not os.path.exists(MLS_CSV):
+        print('(1/5) Downloading MLS file')
+        download()
+        print('(3/5) Reformatting MLS file')
+        reformat_mls()
+
+    if not os.path.exists(MCCS_JSON):
+        print('(4/5) Scraping MCCS')
+        scrape_mccs()
+
+    if os.path.getsize(MCCS_JSON) < os.path.getsize(MLS_CSV):
+        print('(5/5) Integrating MLS and MCCS files')
+        integrate_cells()
 
 # download MLS file
 def download():
@@ -21,20 +37,19 @@ def download():
     file_credentials = soup.find_all('ul')[1].find_all('li')[0].get_text()
 
     # download MLS file
-    print('Downloading MLS file:', file_credentials)
+    print(file_credentials.replace('\n', ''))
     mls_filename = mls_file_link.split('/')[-1]
     with requests.get(mls_file_link, stream=True) as r:
-        print(r.raw)
         with open(mls_filename, 'wb') as f:
             shutil.copyfileobj(r.raw, f)
 
     # extract from zip
+    print('(2/5) Extracting MLS file')
     with gzip.open(mls_filename, 'rb') as mls_zip_in:
         with open(MLS_CSV, 'wb') as mls_zip_out:
             shutil.copyfileobj(mls_zip_in, mls_zip_out)
 
     os.remove(mls_filename)
-    reformat_mls()
 
 # remove useless MLS file columns
 def reformat_mls():
@@ -45,11 +60,11 @@ def reformat_mls():
 # integrate cells to mmcs file
 def integrate_cells():
     try:
-        with open('mccs.json') as json_file:
+        with open(MCCS_JSON) as json_file:
             mcc_data = json.load(json_file)
     except FileNotFoundError:
         scrape_mccs()
-        with open('mccs.json') as json_file:
+        with open(MCCS_JSON) as json_file:
             mcc_data = json.load(json_file)
 
     with open(MLS_CSV, mode="r", newline='') as csv_file:
@@ -70,8 +85,10 @@ def integrate_cells():
                         ds['lng'] = row[5]
                         ds['lat'] = row[6]
                         mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]].append(ds)
+                    break
+            break
 
-    with open('mccs.json', 'w') as json_file:
+    with open(MCCS_JSON, 'w') as json_file:
         json.dump(mcc_data, json_file)
 
 # read MLS file and return pd dataframe
@@ -89,5 +106,4 @@ def get_mcc(csv_data : list, mcc : int) -> list:
 
 if __name__ == '__main__':
 
-    #print(read_mls())
-    integrate_cells()
+    mls_setup()
