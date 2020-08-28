@@ -12,21 +12,31 @@ MLS_CSV = 'mls.csv'
 
 # execte the entire MLS process
 def mls_setup():
-    if not os.path.exists(MLS_CSV):
-        print('(1/5) Downloading MLS file')
-        download()
-        print('(3/5) Reformatting MLS file')
-        reformat_mls()
+    try:
+        if not os.path.exists(MLS_CSV):
+            print('(1/5) Downloading MLS file')
+            download()
+            print('(3/5) Reformatting MLS file')
+            reformat_mls()
+        else:
+            print('(1-3/5) Existing MLS file found')
 
-    if not os.path.exists(MCCS_JSON):
-        print('(4/5) Scraping MCCS')
-        scrape_mccs()
+        if not os.path.exists(MCCS_JSON):
+            print('(4/5) Scraping MCCS')
+            scrape_mccs()
+        else:
+            print('(4/5) Existing MCCS file found')
 
-    if os.path.getsize(MCCS_JSON) < os.path.getsize(MLS_CSV):
-        print('(5/5) Integrating MLS and MCCS files')
-        integrate_to_mccs()
+        if os.path.getsize(MCCS_JSON) < os.path.getsize(MLS_CSV):
+            print('(5/5) Integrating MLS and MCCS files')
+            #integrate_to_mccs()
+            integrate_to_csv()
+        else:
+            print('(5/5) MLS and MCCS files have been integrated')
 
-    print("Successful MLS handling")
+        print("Successful MLS handling")
+    except Exception as e:
+        print(e)
 
 # download MLS file
 def download():
@@ -56,6 +66,7 @@ def download():
 # remove useless MLS file columns
 def reformat_mls():
     dataset = read_mls()
+    dataset.rename(columns={"net": "mnc"})
     del dataset['range'], dataset['samples'], dataset['changeable'], dataset['created'], dataset['updated'], dataset['averageSignal'], dataset['unit']
     dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
 
