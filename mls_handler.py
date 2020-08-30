@@ -13,13 +13,17 @@ MLS_CSV = 'mls.csv'
 # execte the entire MLS process
 class MLS:
     def __init__(self):
+
         if not os.path.exists(MLS_CSV):
             print('*MLS file not found, this will take a while')
             print('*(1/5) Downloading MLS zip')
+
             self.download()
+            downloaded = 1
             print('*(3/5) Reformatting MLS file')
             self.reformat_mls()
         else:
+            downloaded = 0
             print('*(1-3/5) Existing MLS file found')
 
         if not os.path.exists(MCCS_JSON):
@@ -28,14 +32,17 @@ class MLS:
         else:
             print('*(4/5) Existing MCCS file found')
 
-        if False:
+        if downloaded == 1:
+            if hasattr('MLS', 'csv_data') == False:
+                self.read_mls()
             print('*(5/5) Integrating MLS and MCCS files')
             #integrate_to_mccs()
             self.integrate_to_csv()
         else:
-            self.read_mls()
             print('*(5/5) MLS and MCCS files have been integrated')
 
+        if hasattr('MLS', 'csv_data') == False:
+                self.read_mls()
         print("*Successful MLS handling")
 
     # download MLS file
@@ -135,12 +142,9 @@ class MLS:
 
     # read MLS file and return pd dataframe
     def read_mls(self, ) -> list:
-        try:
-            dataset = pd.read_csv(MLS_CSV)
-        except FileNotFoundError:
-            self.download()
-            dataset = pd.read_csv(MLS_CSV)
-        self.csv_data = dataset
+        with open(MLS_CSV, mode="r", newline='') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            self.csv_data = list(csv_reader)
 
     # get all data for specific MCC
     def get_mcc(self, mcc : int) -> list:
@@ -149,4 +153,3 @@ class MLS:
 if __name__ == '__main__':
 
     mls = MLS()
-    print(mls.csv_data)
