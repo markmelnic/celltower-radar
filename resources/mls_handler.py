@@ -3,12 +3,12 @@ import os, csv, json, shutil, requests, gzip
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from scrape_mccs import scrape_mccs, MCCS_JSON
+from resources.scrape_mccs import scrape_mccs, MCCS_JSON
 
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MLS_URL = 'https://location.services.mozilla.com/downloads'
-MLS_CSV = 'mls.csv'
+MLS_CSV = './resources/mls.csv'
 
 # execte the entire MLS process
 class MLS:
@@ -19,11 +19,11 @@ class MLS:
             print('*(1/5) Downloading MLS zip')
 
             self.download()
-            downloaded = 1
+            downloaded = True
             print('*(3/5) Reformatting MLS file')
             self.reformat_mls()
         else:
-            downloaded = 0
+            downloaded = False
             print('*(1-3/5) Existing MLS file found')
 
         if not os.path.exists(MCCS_JSON):
@@ -32,7 +32,7 @@ class MLS:
         else:
             print('*(4/5) Existing MCCS file found')
 
-        if downloaded == 1:
+        if downloaded:
             if hasattr('MLS', 'csv_data') == False:
                 self.read_mls()
             print('*(5/5) Integrating MLS and MCCS files')
@@ -42,7 +42,8 @@ class MLS:
             print('*(5/5) MLS and MCCS files have been integrated')
 
         if hasattr('MLS', 'csv_data') == False:
-                self.read_mls()
+            print('*Reading MLS file')
+            self.read_mls()
         print("*Successful MLS handling")
 
     # download MLS file
@@ -72,11 +73,15 @@ class MLS:
 
     # remove useless MLS file columns
     def reformat_mls(self, ):
-        dataset = self.read_mls()
-        del dataset['range'], dataset['samples'], dataset['changeable'], dataset['created'], dataset['updated'], dataset['averageSignal'], dataset['unit']
-        dataset = dataset.rename(columns={"net": "mnc"})
-        dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
         self.read_mls()
+        with open(MLS_CSV, mode="w", newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            self.csv_data[0][2] = 'mnc'
+            cols_to_remove = sorted([5, 8, 9, 10, 11, 12, 13], reverse=True)
+            for row in self.csv_data:
+                for index in cols_to_remove:
+                    del row[index]
+            csv_writer.writerows(self.csv_data)
 
     # integrate cells to mmcs file
     def integrate_to_mccs(self, ):
@@ -148,7 +153,8 @@ class MLS:
 
     # get all data for specific MCC
     def get_mcc(self, mcc : int) -> list:
-        return self.csv_data[csv_data["mcc"] == mcc]
+        return [row for i, row in enumerate(self.csv_data) if i != 0 and int(row[1]) == mcc]
+        #return self.csv_data[csv_data["mcc"] == mcc]
 
 if __name__ == '__main__':
 
