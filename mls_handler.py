@@ -11,148 +11,153 @@ MLS_URL = 'https://location.services.mozilla.com/downloads'
 MLS_CSV = 'mls.csv'
 
 # execte the entire MLS process
-def mls_setup():
-    try:
-        if not os.path.exists(MLS_CSV):
-            print('*MLS file not found, this will take a while')
-            print('*(1/5) Downloading MLS file')
-            download()
-            print('*(3/5) Reformatting MLS file')
-            reformat_mls()
-        else:
-            print('*(1-3/5) Existing MLS file found')
+class MLS:
+    def __init__(self):
+        try:
+            if not os.path.exists(MLS_CSV):
+                print('*MLS file not found, this will take a while')
+                print('*(1/5) Downloading MLS file')
+                self.download()
+                print('*(3/5) Reformatting MLS file')
+                self.reformat_mls()
+            else:
+                print('*(1-3/5) Existing MLS file found')
 
-        if not os.path.exists(MCCS_JSON):
-            print('*(4/5) Scraping MCCS')
-            scrape_mccs()
-        else:
-            print('*(4/5) Existing MCCS file found')
+            if not os.path.exists(MCCS_JSON):
+                print('*(4/5) Scraping MCCS')
+                self.scrape_mccs()
+            else:
+                print('*(4/5) Existing MCCS file found')
 
-        if os.path.getsize(MCCS_JSON) < os.path.getsize(MLS_CSV):
-            print('*(5/5) Integrating MLS and MCCS files')
-            #integrate_to_mccs()
-            integrate_to_csv()
-        else:
-            print('*(5/5) MLS and MCCS files have been integrated')
+            if False:
+                print('*(5/5) Integrating MLS and MCCS files')
+                #integrate_to_mccs()
+                self.integrate_to_csv()
+            else:
+                print('*(5/5) MLS and MCCS files have been integrated')
 
-        print("*Successful MLS handling")
-    except Exception as e:
-        print(e)
-
-# download MLS file
-def download():
-
-    # find MLS file link
-    page = requests.get(MLS_URL, headers = HEADERS)
-    soup = BeautifulSoup(page.content, 'html.parser')
-
-    mls_file_link = soup.find_all('ul')[1].find_all('li')[0].find('a')['href']
-    file_credentials = soup.find_all('ul')[1].find_all('li')[0].get_text()
+            self.read_mls()
+            print("*Successful MLS handling")
+        except Exception as e:
+            print(e)
 
     # download MLS file
-    print('*' + file_credentials.replace('\n', ''))
-    mls_filename = mls_file_link.split('/')[-1]
-    with requests.get(mls_file_link, stream=True) as r:
-        with open(mls_filename, 'wb') as f:
-            shutil.copyfileobj(r.raw, f)
+    def download(self, ):
 
-    # extract from zip
-    print('*(2/5) Extracting MLS file')
-    with gzip.open(mls_filename, 'rb') as mls_zip_in:
-        with open(MLS_CSV, 'wb') as mls_zip_out:
-            shutil.copyfileobj(mls_zip_in, mls_zip_out)
+        # find MLS file link
+        page = requests.get(MLS_URL, headers = HEADERS)
+        soup = BeautifulSoup(page.content, 'html.parser')
 
-    os.remove(mls_filename)
+        mls_file_link = soup.find_all('ul')[1].find_all('li')[0].find('a')['href']
+        file_credentials = soup.find_all('ul')[1].find_all('li')[0].get_text()
 
-# remove useless MLS file columns
-def reformat_mls():
-    dataset = read_mls()
-    del dataset['range'], dataset['samples'], dataset['changeable'], dataset['created'], dataset['updated'], dataset['averageSignal'], dataset['unit']
-    dataset = dataset.rename(columns={"net": "mnc"})
-    dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
+        # download MLS file
+        print('*' + file_credentials.replace('\n', ''))
+        mls_filename = mls_file_link.split('/')[-1]
+        with requests.get(mls_file_link, stream=True) as r:
+            with open(mls_filename, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
 
-# integrate cells to mmcs file
-def integrate_to_mccs():
-    try:
-        with open(MCCS_JSON) as json_file:
-            mcc_data = json.load(json_file)
-    except FileNotFoundError:
-        scrape_mccs()
-        with open(MCCS_JSON) as json_file:
-            mcc_data = json.load(json_file)
+        # extract from zip
+        print('*(2/5) Extracting MLS file')
+        with gzip.open(mls_filename, 'rb') as mls_zip_in:
+            with open(MLS_CSV, 'wb') as mls_zip_out:
+                shutil.copyfileobj(mls_zip_in, mls_zip_out)
 
-    with open(MLS_CSV, mode="r", newline='') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        csv_data = list(csv_reader)
-        csv_data.pop(0)
+        os.remove(mls_filename)
 
-    for i, row in enumerate(csv_data):
-        for country in mcc_data:
-            if int(row[1]) == mcc_data[country]['mcc']:
-                for mnc in mcc_data[country]['networks']:
-                    if int(row[2]) == mnc['mnc']:
-                        if row[0] not in mnc:
-                            mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]] = []
-                        ds = {}
-                        ds['LAC'] = row[3]
-                        ds['cellId'] = row[4]
-                        ds['lng'] = row[5]
-                        ds['lat'] = row[6]
-                        mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]].append(ds)
-                    break
-            break
+    # remove useless MLS file columns
+    def reformat_mls(self, ):
+        dataset = read_mls()
+        del dataset['range'], dataset['samples'], dataset['changeable'], dataset['created'], dataset['updated'], dataset['averageSignal'], dataset['unit']
+        dataset = dataset.rename(columns={"net": "mnc"})
+        dataset.to_csv(MLS_CSV, encoding='utf-8', index=False)
 
-    with open(MCCS_JSON, 'w') as json_file:
-        json.dump(mcc_data, json_file)
+    # integrate cells to mmcs file
+    def integrate_to_mccs(self, ):
+        try:
+            with open(MCCS_JSON) as json_file:
+                mcc_data = json.load(json_file)
+        except FileNotFoundError:
+            scrape_mccs()
+            with open(MCCS_JSON) as json_file:
+                mcc_data = json.load(json_file)
 
-# integrate cells to mmcs file
-def integrate_to_csv():
-    try:
-        with open(MCCS_JSON) as json_file:
-            mcc_data = json.load(json_file)
-    except FileNotFoundError:
-        scrape_mccs()
-        with open(MCCS_JSON) as json_file:
-            mcc_data = json.load(json_file)
+        with open(MLS_CSV, mode="r", newline='') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            csv_data = list(csv_reader)
+            csv_data.pop(0)
 
-    with open(MLS_CSV, mode="r", newline='') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        csv_data = list(csv_reader)
-
-    # define new columns
-    csv_data[0].append('country')
-    csv_data[0].append('provider')
-    #csv_data[0].append('iso')
-    #csv_data[0].append( 'country code')
-
-    with open(MLS_CSV, mode="w", newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
         for i, row in enumerate(csv_data):
-            if i == 0:
-                continue
             for country in mcc_data:
                 if int(row[1]) == mcc_data[country]['mcc']:
-                    csv_data[i].append(country)
-                    for ntw in mcc_data[country]['networks']:
-                        if int(row[2]) == mcc_data[country]['networks'][mcc_data[country]['networks'].index(ntw)]['mnc']:
-                            csv_data[i].append(mcc_data[country]['networks'][mcc_data[country]['networks'].index(ntw)]['network'])
-                            break
-                    break
-        csv_writer.writerows(csv_data)
+                    for mnc in mcc_data[country]['networks']:
+                        if int(row[2]) == mnc['mnc']:
+                            if row[0] not in mnc:
+                                mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]] = []
+                            ds = {}
+                            ds['LAC'] = row[3]
+                            ds['cellId'] = row[4]
+                            ds['lng'] = row[5]
+                            ds['lat'] = row[6]
+                            mcc_data[country]['networks'][mcc_data[country]['networks'].index(mnc)][row[0]].append(ds)
+                        break
+                break
 
-# read MLS file and return pd dataframe
-def read_mls() -> list:
-    try:
-        dataset = pd.read_csv(MLS_CSV)
-    except FileNotFoundError:
-        download()
-        dataset = pd.read_csv(MLS_CSV)
-    return dataset
+        with open(MCCS_JSON, 'w') as json_file:
+            json.dump(mcc_data, json_file)
 
-# get all data for specific MCC
-def get_mcc(csv_data : list, mcc : int) -> list:
-    return csv_data[csv_data["mcc"] == mcc]
+    # integrate cells to mmcs file
+    def integrate_to_csv(self, ):
+        try:
+            with open(MCCS_JSON) as json_file:
+                mcc_data = json.load(json_file)
+        except FileNotFoundError:
+            scrape_mccs()
+            with open(MCCS_JSON) as json_file:
+                mcc_data = json.load(json_file)
+
+        with open(MLS_CSV, mode="r", newline='') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            csv_data = list(csv_reader)
+
+        # define new columns
+        csv_data[0].append('country')
+        csv_data[0].append('provider')
+        #csv_data[0].append('iso')
+        #csv_data[0].append( 'country code')
+
+        with open(MLS_CSV, mode="w", newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            for i, row in enumerate(csv_data):
+                if i == 0:
+                    continue
+                for country in mcc_data:
+                    if int(row[1]) == mcc_data[country]['mcc']:
+                        csv_data[i].append(country)
+                        for ntw in mcc_data[country]['networks']:
+                            if int(row[2]) == mcc_data[country]['networks'][mcc_data[country]['networks'].index(ntw)]['mnc']:
+                                csv_data[i].append(mcc_data[country]['networks'][mcc_data[country]['networks'].index(ntw)]['network'])
+                                break
+                        break
+            csv_writer.writerows(csv_data)
+        self.csv_data = csv_data
+
+    # read MLS file and return pd dataframe
+    def read_mls(self, ) -> list:
+        try:
+            dataset = pd.read_csv(MLS_CSV)
+        except FileNotFoundError:
+            download()
+            dataset = pd.read_csv(MLS_CSV)
+        self.csv_data = dataset
+        return dataset
+
+    # get all data for specific MCC
+    def get_mcc(self, csv_data : list, mcc : int) -> list:
+        return csv_data[csv_data["mcc"] == mcc]
 
 if __name__ == '__main__':
 
-    mls_setup()
+    mls = MLS()
+    print(mls.csv_data)
