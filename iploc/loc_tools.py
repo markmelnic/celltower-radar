@@ -13,6 +13,7 @@ class ipinfo:
     def __init__(self):
         self.iso, self.initial_coords = self.get_ip_data()
         self.mcc = self.country_mcc(self.iso)
+        print(self.mcc)
 
     # get ip address information to find initial location
     def get_ip_data(self, ):
@@ -24,12 +25,12 @@ class ipinfo:
 
     # get country corresponding MCC
     def country_mcc(self, country : str) -> int:
-        with open('../resources/' + MCCS_JSON) as json_file:
+        with open(MCCS_JSON) as json_file:
             mcc_data = json.load(json_file)
 
         for item in mcc_data:
             if country == mcc_data[item]['iso']:
-                return mcc_data[item]['mcc']
+                return int(mcc_data[item]['mcc'])
 
 if __name__ == '__main__':
 
