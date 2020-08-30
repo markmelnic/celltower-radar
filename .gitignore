@@ -133,3 +133,4 @@ dmypy.json
 *.txt
 *.csv
 *.gz
+key.py
