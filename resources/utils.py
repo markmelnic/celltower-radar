@@ -1,5 +1,5 @@
 
-import json
+import json, math
 
 _SETTINGSJSON = 'settings.json'
 
@@ -16,3 +16,14 @@ def change_settings(field : str, value):
         settings[field] = value
         json.dump(settings, setjson)
         setjson.close()
+
+def cartesian(latitude, longitude, elevation = 0):
+    # Convert to radians
+    latitude = latitude * (math.pi / 180)
+    longitude = longitude * (math.pi / 180)
+
+    R = 6371 # 6378137.0 + elevation  # relative to centre of the earth
+    X = R * math.cos(latitude) * math.cos(longitude)
+    Y = R * math.cos(latitude) * math.sin(longitude)
+    Z = R * math.sin(latitude)
+    return (X, Y, Z)
