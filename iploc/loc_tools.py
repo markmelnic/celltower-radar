@@ -13,7 +13,6 @@ class ipinfo:
     def __init__(self):
         self.iso, self.initial_coords = self.get_ip_data()
         self.mcc = self.country_mcc(self.iso)
-        print(self.mcc)
 
     # get ip address information to find initial location
     def get_ip_data(self, ):
