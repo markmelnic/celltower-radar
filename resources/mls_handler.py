@@ -23,6 +23,7 @@ class MLS:
             self.read_mls()
         print("*Successful MLS handling")
 
+    # check if mls file exists
     def check_mls_file(self, ):
         if not os.path.exists(MLS_CSV):
             print('*MLS file not found, this will take a while')
@@ -36,6 +37,7 @@ class MLS:
             self.downloaded = False
             print('*(1-3/5) Existing MLS file found')
 
+    # check if mls and mcc files have been integrated
     def check_integration(self, ):
         if self.downloaded:
             if hasattr('MLS', 'csv_data') == False:
@@ -116,6 +118,7 @@ class MLS:
 
     # integrate cells to mmcs file
     def integrate_to_csv(self, ):
+        # open MCCS_JSON and get mccs
         try:
             with open(MCCS_JSON) as json_file:
                 mcc_data = json.load(json_file)
@@ -166,6 +169,7 @@ class MLS:
 
         distances = [(i, great_circle(coord, ic)) for i, coord in enumerate(coordinates)]
 
+        # sort dataset
         sorted_dist = sorted(zip([i[0] for i in distances], [i[1] for i in distances]), key=lambda t: t[1])
         sorted_data = [mcc_dataset[item[0]] for item in sorted_dist]
         return sorted_data
