@@ -85,10 +85,11 @@ if __name__ == '__main__':
     print("Sorting dataset")
     sorted_dataset = mls.sort_data(mcc_dataset, ip.initial_coords)
 ```
+ip.initial_coords gets your coordinates based on your ip address, but it is recommended to supply your own coordinates if they are sure to be more accurate.
 
 sorted_dataset has each tower sorted by proximity to your location which means, by index:
 
-sorted_dataset[0] is the closest
+sorted_dataset[0] is the closest cell tower
 
 sorted_dataset[1] is the next and so on
 
