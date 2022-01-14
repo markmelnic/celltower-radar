@@ -18,6 +18,7 @@ class MLS:
     # run entire MLS process
     def __init__(self):
         self.check_mls_file()
+        self.check_mccs_file()
         self.check_integration()
         if hasattr('MLS', 'csv_data') == False:
             print('*Reading MLS file')
@@ -37,6 +38,14 @@ class MLS:
         else:
             self.downloaded = False
             print('*(1-3/5) Existing MLS file found')
+
+    # check if mls file exists
+    def check_mccs_file(self, ):
+        if not os.path.exists(MCCS_JSON):
+            print('*MCCS file not found, generating...')
+            scrape_mccs()
+        else:
+            print('*MCCS file found')
 
     # check if mls and mcc files have been integrated
     def check_integration(self, ):
@@ -123,7 +132,7 @@ class MLS:
             with open(MCCS_JSON) as json_file:
                 mcc_data = json.load(json_file)
         except FileNotFoundError:
-            self.scrape_mccs()
+            scrape_mccs()
             with open(MCCS_JSON) as json_file:
                 mcc_data = json.load(json_file)
 
