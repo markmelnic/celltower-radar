@@ -51,22 +51,16 @@ so computing through them will take a while (on my machine it takes around 15 mi
   
   __utils.py__ has some utilities which are not used currently.
   
-```
-# generate the MLS object
-from res.mls_handler import MLS
-mls = MLS()
-mls.csv
-```
+  __ipinfo.py__ houses the ipinfo object which extracts your location based on ip address and finds the corresponding MCC.
 
-### iploc (stands for IP Location)
 
-__loc_tools.py__ houses the ipinfo object which extracts your location based on ip address and finds the corresponding MCC.
+    # generate the MLS object
+    from res.mls_handler import MLS
+    mls = MLS()
+    mls.csv
 
-```
-# generate the iploc object
-from iploc.loc_tools import ipinfo
-ip = ipinfo()
-```
+    from iploc.loc_tools import ipinfo
+    ip = ipinfo()
 
 ## Example
 
