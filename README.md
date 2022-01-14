@@ -53,7 +53,7 @@ so computing through them will take a while (on my machine it takes around 15 mi
   
 ```
 # generate the MLS object
-from resources.mls_handler import MLS
+from res.mls_handler import MLS
 mls = MLS()
 mls.csv
 ```
@@ -74,7 +74,7 @@ This is basically just a copy of `main.py`
 
 ```
 from iploc.loc_tools import ipinfo
-from resources.mls_handler import MLS
+from res.mls_handler import MLS
 
 if __name__ == '__main__':
     print("Running MLS checks")

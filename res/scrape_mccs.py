@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MCCS_URL = 'https://www.mcc-mnc.com/'
-MCCS_JSON = './resources/mccs.json'
+MCCS_JSON = './res/mccs.json'
 
 def scrape_mccs():
 

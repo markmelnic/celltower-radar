@@ -5,13 +5,13 @@ from bs4 import BeautifulSoup
 from scipy import spatial
 from geopy.distance import great_circle
 
-from resources.utils import cartesian
-from resources.scrape_mccs import scrape_mccs, MCCS_JSON
+from res.utils import cartesian
+from res.scrape_mccs import scrape_mccs, MCCS_JSON
 
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MLS_URL = 'https://location.services.mozilla.com/downloads'
-MLS_CSV = './resources/mls.csv'
+MLS_CSV = './res/mls.csv'
 
 # execte the entire MLS process
 class MLS:

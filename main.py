@@ -2,7 +2,7 @@
 import sys
 
 from iploc.loc_tools import ipinfo
-from resources.mls_handler import MLS
+from res.mls_handler import MLS
 
 if __name__ == '__main__':
 
