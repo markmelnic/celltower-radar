@@ -13,8 +13,9 @@ HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/
 MLS_URL = 'https://location.services.mozilla.com/downloads'
 MLS_CSV = './res/mls.csv'
 
-# execte the entire MLS process
+
 class MLS:
+    # run entire MLS process
     def __init__(self):
         self.check_mls_file()
         self.check_integration()
@@ -50,7 +51,6 @@ class MLS:
 
     # download MLS file
     def download(self, ):
-
         # find MLS file link
         page = requests.get(MLS_URL, headers = HEADERS)
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -155,11 +155,11 @@ class MLS:
             self.csv_data = list(csv_reader)
 
     # get all data for specific MCC
-    def get_mcc(self, mcc : int) -> list:
+    def get_mcc(self, mcc: int) -> list:
         return [row for i, row in enumerate(self.csv_data) if i != 0 and int(row[1]) == mcc]
 
     # find closest 20 towers to ip coordinates
-    def sort_data(self, mcc_dataset : list, ic : tuple) -> list:
+    def sort_data(self, mcc_dataset: list, ic: tuple) -> list:
         '''Return a list of cell towers sorted by proximity to your coordinates.'''
         # mcc_dataset rows
         # row[6] - latitude
@@ -174,6 +174,6 @@ class MLS:
         sorted_data = [mcc_dataset[item[0]] for item in sorted_dist]
         return sorted_data
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     mls = MLS()
