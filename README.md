@@ -1,90 +1,83 @@
-# A set of tools to get all Cell Tower information to use with the Google Geolocation API
+# Warning! Mozilla Location Service has been discontinued. This project is no longer maintained.
+
+This project relied on the Mozilla Location Service (MLS) to provide cell tower data. However, MLS has been discontinued, and the service is no longer available.
+
+[https://discourse.mozilla.org/t/retiring-the-mozilla-location-service/128693](https://discourse.mozilla.org/t/retiring-the-mozilla-location-service/128693)
+
+---
+
+# Cell Tower data tools for Google Geolocation API
 
 ![Cellmapper Example](https://i.imgur.com/o9FzO9t.png)
 
-## Data sources
+## Overview
 
-First things first, why did I make this?
-The answer is simple and it's the lack of documentation on how to use the Geolocation API in python and actually get it to work.
-In theory all the information required can be found in the official [documentation](https://developers.google.com/maps/documentation),
-another problem comes up however, where do you find all the data necessary for instance for the Cell Tower Object.
-I will thoroughly describe how to use the tools within repository (comments aside), and what is the purpose of each file here.
+This repository provides a comprehensive set of tools for retrieving and processing cell tower data for use with the Google Geolocation API. It addresses the lack of detailed documentation and simplifies the process of collecting and using necessary information, such as Cell Tower Object data.
 
-### [The Mozilla Location Service](https://location.services.mozilla.com) (will be referred to as MLS)
+## Data Sources
 
-> MLS is an open service, which lets devices determine their location based on network infrastructure like Bluetooth beacons, cell towers and WiFi access points.
-This network based location service complements satellite based navigation systems like A-GPS.
+### [Mozilla Location Service (MLS)](https://location.services.mozilla.com)
 
-MLS offers us a huge dataset containing data for around 50 million unique cells which we can use, in combination with MCC and providers data (will discuss below),
-to make proper requests to the API and receive an accurate response. The __mls_handler__ will make the request, download, save, reformat and process the file,
-so you shouldn't worry about that.
+> MLS is an open service that allows devices to determine their location based on network infrastructure such as Bluetooth beacons, cell towers, and Wi-Fi access points. This network-based location service complements satellite-based systems like A-GPS.
 
-### [Mobile Country Codes (MCC) and Mobile Network Codes (MNC)](https://www.mcc-mnc.com) (will be referred to as MCCS)
+MLS provides a large dataset of around 50 million unique cell towers. This dataset, combined with MCC and provider data, enables accurate API requests. The `mls` module manages the request, download, reformatting, and processing of the data.
 
-> Mobile Country Codes (MCC) are used in wireless telephone networks (GSM, CDMA, UMTS, etc.) in order to identify the country which a mobile subscriber belongs to.
+### [Mobile Country Codes (MCC) and Mobile Network Codes (MNC)](https://www.mcc-mnc.com)
 
-MCCS is offering a extensive dataset containing all providers, mcc and mnc for every country in the world.
-Here it is needed to know how each MCC and country correspond to each other and further identify the MNC, etc.
+> MCC and MNC are used in wireless networks (GSM, CDMA, UMTS, etc.) to identify the country and network provider associated with a mobile subscriber.
 
-### [Cellmapper providers list](https://www.cellmapper.net)
+This dataset is essential for linking MCC codes to countries and their respective network providers.
 
-Cellmapper is a very nice and interactive tool to visualize and get data for cell towers around you, but it is lacking on data like LAC and cell coordinates.
-However, it has a good and clean selector list of providers in each country which will be useful in a later version of this repository, so there's that.
+### [CellMapper Providers List](https://www.cellmapper.net)
 
-## Description of functionality
+CellMapper is a useful tool for visualizing and collecting data on nearby cell towers. While it lacks some details like Location Area Code (LAC) and exact coordinates, its provider list by country can be useful for future enhancements.
 
-### Main
+## Features
 
-`main.py` is intended to run all modules of this repository to generate the dataset and return the list of cell towers closest to your IP based location
-in ascending order by proximity in km.
+### Main Functionality
 
-Execute `py main.py` to run the entire process as intended. Take into consideration that the dataset has around 50 million cells recorded,
-so computing through them will take a while (on my machine it takes around 15 minutes).
+`main.py` orchestrates the entire process of generating the dataset and sorting cell towers based on proximity to your location. It outputs the closest towers to your IP-based location.
 
-### Resources
-
-  __mls_handler.py__ contains the MLS oject, which is meant to run through all MLS procedures to generate the complete dataset.
-  
-  __scrape_mccs.py__ will scrape the mcc codes used to complete the MLS dataset.
-  
-  __scrape_providers.py__ scrapes the providers of each country from cellmapper but is not currently used.
-  
-  __utils.py__ has some utilities which are not used currently.
-  
-  __ipinfo.py__ houses the ipinfo object which extracts your location based on ip address and finds the corresponding MCC.
-
-
-    # generate the MLS object
-    from res.mls_handler import MLS
-    mls = MLS()
-    mls.csv
-
-    from iploc.loc_tools import ipinfo
-    ip = ipinfo()
-
-## Example
-
-This is basically just a copy of `main.py`
-
+To run:
+```bash
+python main.py
 ```
+
+*Note: Processing the dataset (around 50 million records) may take some time.*
+
+### Available Resources
+
+- **`mls.py`**: Processes MLS data.
+- **`scrape_mccs.py`**: Scrapes MCC codes to enhance the MLS dataset.
+- **`scrape_providers.py`**: Scrapes provider details from CellMapper (not currently utilized).
+- **`utils.py`**: Contains additional utilities (not currently utilized).
+- **`ipinfo.py`**: Retrieves location based on your IP address and identifies the corresponding MCC.
+
+## Usage Example
+
+Below is a usage example demonstrating how to generate a sorted list of cell towers:
+
+```python
 from iploc.loc_tools import ipinfo
-from res.mls_handler import MLS
+from src.mls import MLS
 
 if __name__ == '__main__':
-    print("Running MLS checks")
     mls = MLS()
-    print("Getting IP information")
+
     ip = ipinfo()
+
     mcc_dataset = mls.get_mcc(ip.mcc)
-    print("Sorting dataset")
+
     sorted_dataset = mls.sort_data(mcc_dataset, ip.initial_coords)
 ```
-ip.initial_coords gets your coordinates based on your ip address, but it is recommended to supply your own coordinates if they are sure to be more accurate.
 
-sorted_dataset has each tower sorted by proximity to your location which means, by index:
+- `ip.initial_coords` retrieves your coordinates based on your IP address. For higher accuracy, you can supply your own coordinates.
+- `sorted_dataset` contains cell towers sorted by proximity. `sorted_dataset[0]` is the closest tower.
 
-sorted_dataset[0] is the closest cell tower
+## Contribution
 
-sorted_dataset[1] is the next and so on
+Contributions are welcome! Feel free to submit a pull request or open an issue for suggestions, feature requests, or bug reports.
 
-# I hope you'll find this repository useful and don't hesitate to contact me if you have any questions, suggestions, etc. Contributions are warmly welcomed!
+## License
+
+This project is licensed under the MIT License. See `LICENSE` for more details.

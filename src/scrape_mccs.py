@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MCCS_URL = 'https://www.mcc-mnc.com/'
-MCCS_JSON = './res/mccs.json'
+MCCS_JSON = 'res/mccs.json'
 
 
 def scrape_mccs():
@@ -16,10 +16,12 @@ def scrape_mccs():
     for row in soup.find('tbody'):
         if row == '\n':
             continue
-        row_items = [item.text for item in row]
+
+        row_items = [td.text for td in row.find_all('td')]
 
         if row_items[1] == 'n/a' or row_items[4] == '':
             continue
+
         if row_items[3] not in data:
             data[str(row_items[3])] = {}
             data[str(row_items[3])]['mcc'] = int(row_items[0])

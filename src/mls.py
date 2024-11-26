@@ -5,13 +5,13 @@ from bs4 import BeautifulSoup
 from scipy import spatial
 from geopy.distance import great_circle
 
-from res.utils import cartesian
-from res.scrape_mccs import scrape_mccs, MCCS_JSON
+from src.utils import cartesian
+from src.scrape_mccs import scrape_mccs, MCCS_JSON
 
 HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
 
 MLS_URL = 'https://location.services.mozilla.com/downloads'
-MLS_CSV = './res/mls.csv'
+MLS_CSV = 'res/mls.csv'
 
 
 class MLS:
@@ -85,7 +85,7 @@ class MLS:
     # remove useless MLS file columns
     def reformat_mls(self, ):
         self.read_mls()
-        with open(MLS_CSV, mode="w", newline='') as csv_file:
+        with open(MLS_CSV, "w", newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
             self.csv_data[0][2] = 'mnc'
             cols_to_remove = sorted([5, 8, 9, 10, 11, 12, 13], reverse=True)
@@ -142,7 +142,7 @@ class MLS:
         #self.csv_data[0].append('iso')
         #self.csv_data[0].append( 'country code')
 
-        with open(MLS_CSV, mode="w", newline='') as csv_file:
+        with open(MLS_CSV, "w", newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
             for i, row in enumerate(self.csv_data):
                 if i == 0:
@@ -159,7 +159,7 @@ class MLS:
 
     # read MLS file and return dataset
     def read_mls(self, ) -> list:
-        with open(MLS_CSV, mode="r", newline='') as csv_file:
+        with open(MLS_CSV, "r", newline='') as csv_file:
             csv_reader = csv.reader(csv_file)
             self.csv_data = list(csv_reader)
 
